@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Irfan Anees — Architect Learning Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f3ee;
+    --surface: #ffffff;
+    --border: #e2ddd5;
+    --text: #1a1714;
+    --muted: #6b6560;
+    --hint: #a39e98;
+    --blue: #1a5fa8;
+    --blue-bg: #e8f0fb;
+    --green: #0f6e56;
+    --green-bg: #e1f5ee;
+    --amber: #854f0b;
+    --amber-bg: #faeeda;
+    --red: #a32d2d;
+    --red-bg: #fcebeb;
+    --accent: #1a5fa8;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* Layout */
+  .shell { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 0;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+  }
+  .main { margin-left: 240px; flex: 1; padding: 2rem 2.5rem; max-width: 860px; }
+
+  /* Sidebar */
+  .logo { padding: 0 1.5rem 1.5rem; border-bottom: 1px solid var(--border); }
+  .logo-mark { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--accent); }
+  .logo-sub { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+  .nav { padding: 1.25rem 0; flex: 1; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 1.5rem;
+    font-size: 14px; color: var(--muted);
+    cursor: pointer; transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .nav-item:hover { color: var(--text); background: var(--bg); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: var(--blue-bg); font-weight: 500; }
+  .nav-icon { width: 18px; text-align: center; font-size: 15px; }
+  .profile { padding: 1.25rem 1.5rem; border-top: 1px solid var(--border); }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--blue-bg); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 14px; margin-bottom: 8px;
+  }
+  .profile-name { font-size: 14px; font-weight: 500; }
+  .profile-role { font-size: 12px; color: var(--muted); }
+
+  /* Header */
+  .page-header { margin-bottom: 2rem; }
+  .page-header h1 { font-family: 'DM Serif Display', serif; font-size: 28px; font-weight: 400; color: var(--text); }
+  .page-header p { font-size: 14px; color: var(--muted); margin-top: 4px; }
+
+  /* Progress strip */
+  .progress-strip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    display: flex; align-items: center; gap: 2rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  .stat { text-align: center; }
+  .stat-num { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--text); }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .streak-row { display: flex; gap: 5px; align-items: center; }
+  .streak-day { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border); font-size: 10px; display: flex; align-items: center; justify-content: center; color: var(--hint); }
+  .streak-day.lit { background: #EF9F27; border-color: #EF9F27; color: #fff; font-weight: 600; }
+  .overall-bar-wrap { flex: 1; min-width: 160px; }
+  .overall-bar-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .overall-bar { background: var(--bg); border-radius: 99px; height: 8px; }
+  .overall-bar-fill { background: var(--accent); height: 8px; border-radius: 99px; width: 48%; transition: width 0.6s ease; }
+
+  /* Section */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Cards grid */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .topic-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: box-shadow 0.15s, transform 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .topic-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-2px); }
+  .topic-card.inprogress { border-top: 3px solid var(--accent); }
+  .topic-card.done { border-top: 3px solid var(--green); }
+  .tc-icon { font-size: 22px; margin-bottom: 10px; }
+  .tc-title { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+  .tc-sub { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .badge {
+    display: inline-block; padding: 3px 9px;
+    border-radius: 99px; font-size: 11px; font-weight: 500;
+    margin-top: 10px;
+  }
+  .badge-blue { background: var(--blue-bg); color: var(--blue); }
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-amber { background: var(--amber-bg); color: var(--amber); }
+  .tc-bar { height: 3px; background: var(--bg); border-radius: 99px; margin-top: 12px; }
+  .tc-bar-fill { height: 3px; border-radius: 99px; background: var(--accent); }
+
+  /* Lesson */
+  .lesson-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    margin-bottom: 1rem;
+  }
+  .lesson-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .lesson-title { font-family: 'DM Serif Display', serif; font-size: 24px; font-weight: 400; margin-bottom: 1.25rem; }
+  .lesson-body { font-size: 14px; color: var(--muted); line-height: 1.8; }
+  .lesson-body strong { color: var(--text); font-weight: 500; }
+  .lesson-body p { margin-bottom: 1rem; }
+  .lesson-actions { display: flex; gap: 10px; margin-top: 1.5rem; flex-wrap: wrap; }
+  .btn {
+    padding: 9px 18px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); font-size: 13px;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    background: var(--surface); color: var(--text);
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--bg); }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { background: #1350a0; }
+
+  /* Quiz */
+  .quiz-q-text { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 1.25rem; line-height: 1.5; }
+  .quiz-opt {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px; cursor: pointer;
+    font-size: 14px; color: var(--text);
+    background: var(--surface); transition: background 0.12s;
+  }
+  .quiz-opt:hover { background: var(--bg); }
+  .quiz-opt.correct { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+  .quiz-opt.wrong { border-color: var(--red); background: var(--red-bg); color: var(--red); }
+  .q-circle { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; color: var(--muted); }
+  .quiz-feedback { font-size: 13px; color: var(--green); background: var(--green-bg); border-radius: var(--radius-sm); padding: 10px 14px; margin-top: 10px; display: none; }
+  .quiz-score { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text); }
+
+  /* Skills */
+  .skill-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .skill-label { font-size: 13px; color: var(--muted); width: 180px; flex-shrink: 0; }
+  .skill-track { flex: 1; background: var(--bg); border-radius: 99px; height: 8px; }
+  .skill-fill { height: 8px; border-radius: 99px; transition: width 0.6s ease; }
+  .skill-pct { font-size: 12px; color: var(--hint); width: 36px; text-align: right; }
+  .skill-tag { font-size: 11px; padding: 2px 7px; border-radius: 99px; flex-shrink: 0; }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+  /* Mobile */
+  .mobile-nav {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 8px 0 env(safe-area-inset-bottom, 8px);
+    z-index: 100;
+    justify-content: space-around;
+  }
+  .mob-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 12px; cursor: pointer; color: var(--hint); font-size: 10px; border: none; background: none; font-family: 'DM Sans', sans-serif; transition: color 0.15s; }
+  .mob-btn.active { color: var(--accent); }
+  .mob-icon { font-size: 18px; }
+
+  @media (max-width: 700px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 1.25rem 1rem 5rem; }
+    .mobile-nav { display: flex; }
+    .card-grid { grid-template-columns: 1fr 1fr; }
+    .progress-strip { gap: 1rem; }
+    .stat-num { font-size: 22px; }
+    .lesson-title { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">ArchMaster</div>
+      <div class="logo-sub">Irfan Anees · Learning Hub</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" onclick="switchTab('topics')"><span class="nav-icon">⬡</span> Topics</div>
+      <div class="nav-item" onclick="switchTab('lesson')"><span class="nav-icon">◈</span> Today's Lesson</div>
+      <div class="nav-item" onclick="switchTab('quiz')"><span class="nav-icon">◎</span> Quick Quiz</div>
+      <div class="nav-item" onclick="switchTab('skills')"><span class="nav-icon">▲</span> My Skills</div>
+      <div class="nav-item" onclick="switchTab('library')"><span class="nav-icon">◫</span> Library</div>
+    </nav>
+    <div class="profile">
+      <div class="avatar">IA</div>
+      <div class="profile-name">Irfan Anees</div>
+      <div class="profile-role">Mid-level Architect</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Progress Strip -->
+    <div class="progress-strip">
+      <div class="stat">
+        <div class="stat-num">6</div>
+        <div class="stat-label">Topics</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="done-count">1</div>
+        <div class="stat-label">In progress</div>
+      </div>
+      <div>
+        <div class="stat-label" style="margin-bottom:6px">This week</div>
+        <div class="streak-row">
+          <div class="streak-day lit">M</div>
+          <div class="streak-day lit">T</div>
+          <div class="streak-day lit">W</div>
+          <div class="streak-day">T</div>
+          <div class="streak-day">F</div>
+          <div class="streak-day">S</div>
+          <div class="streak-day">S</div>
+        </div>
+      </div>
+      <div class="overall-bar-wrap">
+        <div class="overall-bar-label">Overall progress · 48%</div>
+        <div class="overall-bar"><div class="overall-bar-fill" id="overall-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- TOPICS -->
+    <div class="section active" id="sec-topics">
+      <div class="page-header">
+        <h1>Architecture topics</h1>
+        <p>Tap any topic to open its lesson.</p>
+      </div>
+      <div class="card-grid">
+        <div class="topic-card inprogress" onclick="goLesson('passive')">
+          <div class="tc-icon">☀</div>
+          <div class="tc-title">Passive design</div>
+          <div class="tc-sub">Solar orientation, natural ventilation, shading strategies</div>
+          <span class="badge badge-blue">In progress</span>
+          <div class="tc-bar"><div class="tc-bar-fill" style="width:68%"></div></div>
+        </div>
+        <div class="topic-card" onclick="goLesson('envelope')">
+          <div class="tc-icon">⬡</div>
+          <div class="tc-title">Building envelope</div>
+          <div class="tc-sub">Thermal mass, insulation, air barriers, moisture control</div>
+          <span class="badge badge-amber">Start</span>
+          <div class="tc-bar"><div class="tc-bar-fill" style="width:42%"></div></div>
+        </div>
+        <div class="topic-card" onclick="goLesson('structures')">
+          <div class="tc-icon">▲</div>
+          <div class="tc-title">Structural systems</div>
+          <div class="tc-sub">Load paths, lateral forces, material behaviour</div>
+          <span class="badge badge-amber">Start</span>
+          <div class="tc-bar"><div class="tc-bar-fill" style="width:55%"></div></div>
+        </div>
+        <div class="topic-card" onclick="goLesson('hvac')">
+          <div class="tc-icon">⬤</div>
+          <div class="tc-title">HVAC & MEP</div>
+          <div class="tc-sub">Mechanical, electrical, plumbing coordination</div>
+          <span class="badge badge-amber">Weak area</span>
+          <div class="tc-bar"><div class="tc-bar-fill" style="width:30%"></div></div>
+        </div>
+        <div class="topic-card" onclick="goLesson('materials')">
+          <div class="tc-icon">◆</div>
+          <div class="tc-title">Materials science</div>
+          <div class="tc-sub">Durability, sustainability ratings, embodied carbon</div>
+          <span class="badge badge-amber">Start</span>
+          <div class="tc-bar"><div class="tc-bar-fill" style="width:50%"></div></div>
+        </div>
+        <div class="topic-card done" onclick="goLesson('codes')">
+          <div class="tc-icon">◉</div>
+          <div class="tc-title">Building codes</div>
+          <div class="tc-sub">IBC, accessibility, fire egress, zoning compliance</div>
+          <span class="badge badge-green">Strong</span>
+          <div class="tc-bar"><div class="tc-bar-fill" style="width:75%;background:var(--green)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LESSON -->
+    <div class="section" id="sec-lesson">
+      <div class="page-header">
+        <h1>Today's lesson</h1>
+        <p id="lesson-topic-label">Passive design strategies</p>
+      </div>
+      <div class="lesson-card">
+        <div class="lesson-eyebrow" id="lesson-cat">Design strategies</div>
+        <div class="lesson-title" id="lesson-title">Passive solar design strategies</div>
+        <div class="lesson-body" id="lesson-body"></div>
+        <div class="lesson-actions">
+          <button class="btn btn-primary" onclick="switchTab('quiz')">Test yourself →</button>
+          <button class="btn" onclick="switchTab('topics')">← Back to topics</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="section" id="sec-quiz">
+      <div class="page-header">
+        <h1>Quick quiz</h1>
+        <p>Question <span id="q-num">1</span> of <span id="q-total">3</span> · Score: <span id="q-score">0</span></p>
+      </div>
+      <div class="lesson-card">
+        <div class="quiz-q-text" id="q-text"></div>
+        <div id="q-opts"></div>
+        <div class="quiz-feedback" id="q-feedback"></div>
+        <div class="lesson-actions" style="margin-top:1rem">
+          <button class="btn btn-primary" id="next-btn" style="display:none" onclick="nextQ()">Next question →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SKILLS -->
+    <div class="section" id="sec-skills">
+      <div class="page-header">
+        <h1>My skill map</h1>
+        <p>Your current proficiency across building science and design strategy domains.</p>
+      </div>
+      <div class="lesson-card">
+        <div style="margin-bottom:1.5rem">
+          <div class="skill-row">
+            <span class="skill-label">Passive design</span>
+            <div class="skill-track"><div class="skill-fill" style="width:68%;background:var(--accent)"></div></div>
+            <span class="skill-pct">68%</span>
+            <span class="skill-tag badge badge-blue">Good</span>
+          </div>
+          <div class="skill-row">
+            <span class="skill-label">Building envelope</span>
+            <div class="skill-track"><div class="skill-fill" style="width:42%;background:#EF9F27"></div></div>
+            <span class="skill-pct">42%</span>
+            <span class="skill-tag badge badge-amber">Review</span>
+          </div>
+          <div class="skill-row">
+            <span class="skill-label">Structural systems</span>
+            <div class="skill-track"><div class="skill-fill" style="width:55%;background:var(--accent)"></div></div>
+            <span class="skill-pct">55%</span>
+            <span class="skill-tag badge badge-blue">Good</span>
+          </div>
+          <div class="skill-row">
+            <span class="skill-label">HVAC & MEP</span>
+            <div class="skill-track"><div class="skill-fill" style="width:30%;background:#E24B4A"></div></div>
+            <span class="skill-pct">30%</span>
+            <span class="skill-tag" style="background:var(--red-bg);color:var(--red);font-size:11px;padding:2px 7px;border-radius:99px">Focus here</span>
+          </div>
+          <div class="skill-row">
+            <span class="skill-label">Materials science</span>
+            <div class="skill-track"><div class="skill-fill" style="width:50%;background:var(--accent)"></div></div>
+            <span class="skill-pct">50%</span>
+            <span class="skill-tag badge badge-blue">Good</span>
+          </div>
+          <div class="skill-row">
+            <span class="skill-label">Building codes</span>
+            <div class="skill-track"><div class="skill-fill" style="width:75%;background:var(--green)"></div></div>
+            <span class="skill-pct">75%</span>
+            <span class="skill-tag badge badge-green">Strong</span>
+          </div>
+        </div>
+        <hr class="divider" />
+        <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Recommended focus: <strong style="color:var(--text)">HVAC & MEP</strong> and <strong style="color:var(--text)">Building envelope</strong> have the most room for growth.</p>
+        <button class="btn btn-primary" onclick="goLesson('hvac')">Study HVAC now →</button>
+      </div>
+    </div>
+
+    <!-- LIBRARY -->
+    <div class="section" id="sec-library">
+      <div class="page-header">
+        <h1>Book library</h1>
+        <p>Your personal architecture reference collection — opens in Google Drive.</p>
+      </div>
+      <div class="lesson-card" style="margin-bottom:1rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div>
+            <div style="font-size:15px;font-weight:500;margin-bottom:4px">My architecture books folder</div>
+            <div style="font-size:13px;color:var(--muted)">All your PDFs in one place — building science, design strategies, references & more.</div>
+          </div>
+          <a href="https://drive.google.com/drive/folders/1g3Z25OADA_9jUavHAaBpSn8KatoT4aTe?usp=sharing" target="_blank">
+            <button class="btn btn-primary">Open full folder →</button>
+          </a>
+        </div>
+      </div>
+      <div class="card-grid">
+        <div class="topic-card" onclick="window.open('https://drive.google.com/drive/folders/1g3Z25OADA_9jUavHAaBpSn8KatoT4aTe?usp=sharing','_blank')">
+          <div class="tc-icon">◫</div>
+          <div class="tc-title">Design strategies</div>
+          <div class="tc-sub">Architectural design theory, process & methodology</div>
+          <span class="badge badge-blue">Browse →</span>
+        </div>
+        <div class="topic-card" onclick="window.open('https://drive.google.com/drive/folders/1g3Z25OADA_9jUavHAaBpSn8KatoT4aTe?usp=sharing','_blank')">
+          <div class="tc-icon">◫</div>
+          <div class="tc-title">Building science</div>
+          <div class="tc-sub">Thermal, structural, envelope & MEP reference texts</div>
+          <span class="badge badge-blue">Browse →</span>
+        </div>
+        <div class="topic-card" onclick="window.open('https://drive.google.com/drive/folders/1g3Z25OADA_9jUavHAaBpSn8KatoT4aTe?usp=sharing','_blank')">
+          <div class="tc-icon">◫</div>
+          <div class="tc-title">Codes & standards</div>
+          <div class="tc-sub">IBC, ASHRAE, accessibility & zoning references</div>
+          <span class="badge badge-blue">Browse →</span>
+        </div>
+        <div class="topic-card" onclick="window.open('https://drive.google.com/drive/folders/1g3Z25OADA_9jUavHAaBpSn8KatoT4aTe?usp=sharing','_blank')">
+          <div class="tc-icon">◫</div>
+          <div class="tc-title">All books</div>
+          <div class="tc-sub">Browse the complete collection in your Drive</div>
+          <span class="badge badge-green">Open Drive →</span>
+        </div>
+      </div>
+      <div style="margin-top:1.5rem;font-size:13px;color:var(--blue);background:var(--blue-bg);border-radius:var(--radius-sm);padding:12px 16px;">
+        <strong>Tip:</strong> Share individual book links with Claude and I'll add them as their own cards with titles and descriptions.
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Mobile nav -->
+<nav class="mobile-nav">
+  <button class="mob-btn active" onclick="switchTab('topics')"><span class="mob-icon">⬡</span>Topics</button>
+  <button class="mob-btn" onclick="switchTab('lesson')"><span class="mob-icon">◈</span>Lesson</button>
+  <button class="mob-btn" onclick="switchTab('quiz')"><span class="mob-icon">◎</span>Quiz</button>
+  <button class="mob-btn" onclick="switchTab('skills')"><span class="mob-icon">▲</span>Skills</button>
+  <button class="mob-btn" onclick="switchTab('library')"><span class="mob-icon">◫</span>Library</button>
+</nav>
+
+<script>
+const lessons = {
+  passive: {
+    cat: 'Design strategies',
+    title: 'Passive solar design strategies',
+    body: `<p><strong>Passive solar design</strong> uses the sun's energy to heat and light buildings without mechanical systems. Mastering this reduces energy loads dramatically and is a hallmark of a sophisticated architect.</p>
+<p><strong>1. Orientation</strong> — Place the longest façade facing true south (northern hemisphere). South-facing glazing maximises winter sun penetration while allowing summer shading. Rule of thumb: the building's long axis runs east–west.</p>
+<p><strong>2. Thermal mass</strong> — Concrete, brick, and stone absorb daytime heat and release it at night. The ideal mass-to-glazing ratio is 5.5–7:1 by surface area. Dark colours on mass surfaces improve absorption.</p>
+<p><strong>3. Shading</strong> — Overhangs sized to the solar altitude angle block summer sun while admitting low winter sun. Depth = 0.25–0.5 × window height as a starting rule; refine with climate data.</p>
+<p><strong>4. Natural ventilation</strong> — Stack effect and cross-ventilation reduce cooling loads. Place operable openings on prevailing wind sides with high outlets on leeward walls.</p>`
+  },
+  envelope: {
+    cat: 'Building science',
+    title: 'Building envelope fundamentals',
+    body: `<p><strong>The building envelope</strong> is the physical separator between conditioned and unconditioned environments. Getting this wrong leads to energy loss, moisture damage, and occupant discomfort.</p>
+<p><strong>1. Continuous insulation</strong> — Thermal bridging through framing members can reduce effective R-value by 30–40%. Use external insulation layers with staggered joints to maintain continuity.</p>
+<p><strong>2. Air barrier</strong> — A continuous air barrier reduces infiltration losses — often the single largest energy loss pathway. Note: the air barrier and vapour retarder are different assemblies and both are needed.</p>
+<p><strong>3. Moisture management</strong> — Control four forces: gravity (laps and drainage), capillary action (capillary breaks), air movement (air barrier), and diffusion (vapour retarder on warm side in cold climates).</p>
+<p><strong>4. Window-to-wall ratio (WWR)</strong> — In commercial buildings, ASHRAE 90.1 limits WWR to 40% to balance daylighting against heat gain and loss. High-performance glazing (triple pane, low-e coatings) allows more.</p>`
+  },
+  structures: {
+    cat: 'Building science',
+    title: 'Structural systems overview',
+    body: `<p><strong>Understanding load paths</strong> is fundamental to architectural decision-making. Every architectural choice — floor-to-floor height, column grid, opening size — affects structural performance.</p>
+<p><strong>Gravity loads</strong> — Dead loads (self-weight) + live loads (occupants, snow). Flow from slab → beam → column → foundation. Know your tributary areas and load accumulation.</p>
+<p><strong>Lateral loads</strong> — Wind and seismic forces require shear walls, moment frames, or braced frames. Irregularities in plan or section create torsional demands that complicate design significantly.</p>
+<p><strong>Material behaviour</strong> — Steel is ductile and excellent in tension and compression. Concrete is strong in compression but brittle in tension (needs reinforcement). Timber is orthotropic — strong along the grain, weaker across it.</p>
+<p><strong>Coordination tip</strong> — Discuss the structural grid with your engineer early. A 9m × 9m column grid suits flat-plate concrete; long-span steel allows column-free spaces but needs deeper floor sections.</p>`
+  },
+  hvac: {
+    cat: 'Building science',
+    title: 'HVAC & MEP coordination',
+    body: `<p><strong>Mechanical systems</strong> consume 40–60% of building energy. As an architect, your layout decisions directly affect system efficiency — this is a critical area to strengthen.</p>
+<p><strong>Zoning</strong> — Group spaces by occupancy schedule and load profile. Core zones (interior, no solar) need cooling year-round. Perimeter zones have variable heating and cooling demands. Mixing them in one zone wastes energy.</p>
+<p><strong>Plenum coordination</strong> — Plan ceiling heights to accommodate duct, pipe, and conduit runs. 400–600mm structural depth is typical for commercial floors. Coordination clashes are the #1 cause of construction delays.</p>
+<p><strong>Ventilation</strong> — ASHRAE 62.1 sets minimum fresh air rates per person and per square metre. Energy Recovery Ventilators (ERVs) recover heat and moisture from exhaust air, cutting fresh-air conditioning costs by up to 70%.</p>
+<p><strong>Riser locations</strong> — Place mechanical, electrical, and plumbing shafts at building core where they don't interrupt leasable area. Stack them vertically to reduce pipe and duct runs.</p>`
+  },
+  materials: {
+    cat: 'Design strategies',
+    title: 'Materials science & sustainability',
+    body: `<p><strong>Material choice</strong> affects performance, longevity, occupant health, and environmental impact. Clients increasingly ask for sustainable specifications — this knowledge differentiates you.</p>
+<p><strong>Embodied carbon</strong> — Concrete and steel account for roughly 16% of global CO₂. Mass timber (CLT, glulam) can be carbon-negative when sourced sustainably and sequesters carbon for the building's life.</p>
+<p><strong>Durability & lifecycle</strong> — Design service life vs. maintenance cycle. Brick masonry lasts 100+ years with minimal maintenance. EIFS (exterior insulation finish systems) needs recoating every 20–25 years and is prone to moisture intrusion if detailed poorly.</p>
+<p><strong>Material compatibility</strong> — Galvanic corrosion occurs when dissimilar metals contact each other in the presence of moisture (e.g. steel fasteners in aluminium cladding). Differential thermal expansion causes joint failures if not accommodated in the detailing.</p>
+<p><strong>Certifications</strong> — LEED, WELL, and Living Building Challenge each prioritise different material attributes. Know your project's target certification before specifying.</p>`
+  },
+  codes: {
+    cat: 'Building science',
+    title: 'Building codes & compliance',
+    body: `<p><strong>Code proficiency</strong> separates good architects from great ones. Codes set the minimum legal standard; your job is to meet or exceed them while achieving the design intent.</p>
+<p><strong>IBC occupancy classification</strong> — The most important early decision. Occupancy type (A, B, E, I, R, S, etc.) drives fire rating requirements, egress width, travel distance, and maximum occupant load calculations.</p>
+<p><strong>Egress design</strong> — Two remote exits required for most occupancies above 49 persons. Travel distance, common path of travel, and dead-end corridor limits are all measured and enforced. Get these right before schematic design is too advanced.</p>
+<p><strong>ADA/accessibility</strong> — Route of travel, clear floor space (760mm × 1220mm), reach ranges (380–1220mm), and toilet room layout are heavily scrutinised. Design for accessibility from day one, not as an afterthought.</p>
+<p><strong>Energy codes</strong> — ASHRAE 90.1 and the IECC set envelope U-values, window-to-wall ratio limits, lighting power densities, and commissioning requirements. Know the climate zone for every project.</p>`
+  }
+};
+
+const questions = [
+  { q: 'Which wall assembly best controls interstitial condensation in a cold climate?', opts: ['Vapour barrier on the cold side of insulation','Vapour retarder on the warm side of insulation','No vapour control — let the wall breathe','Double vapour barrier on both sides'], ans: 1, fb: 'Correct. A warm-side vapour retarder keeps humid indoor air from reaching the cold dew-point zone inside the wall, preventing condensation.' },
+  { q: 'What is the primary structural purpose of a shear wall?', opts: ['Support gravity loads from floors and roof','Resist lateral wind and seismic forces','Provide thermal mass for passive solar','Separate fire compartments'], ans: 1, fb: 'Correct. Shear walls transfer lateral loads from the roof or floors horizontally and then down to the foundation.' },
+  { q: 'In passive solar design, what is the recommended mass-to-glazing ratio by surface area?', opts: ['1:1','3:1','5.5–7:1','10:1'], ans: 2, fb: 'Correct. A 5.5–7:1 ratio ensures the thermal mass can absorb and re-radiate heat effectively without overheating.' }
+];
+
+let qIdx = 0, score = 0;
+const tabs = ['topics','lesson','quiz','skills','library'];
+
+function switchTab(id) {
+  tabs.forEach((t,i) => {
+    document.querySelectorAll('.nav-item')[i].classList.toggle('active', t===id);
+    document.querySelectorAll('.mob-btn')[i].classList.toggle('active', t===id);
+    document.getElementById('sec-'+t).classList.toggle('active', t===id);
+  });
+  if(id==='quiz') loadQ();
+}
+
+function goLesson(topic) {
+  const l = lessons[topic];
+  document.getElementById('lesson-cat').textContent = l.cat;
+  document.getElementById('lesson-title').textContent = l.title;
+  document.getElementById('lesson-body').innerHTML = l.body;
+  document.getElementById('lesson-topic-label').textContent = l.title;
+  switchTab('lesson');
+}
+
+function loadQ() {
+  const q = questions[qIdx];
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('q-num').textContent = qIdx+1;
+  document.getElementById('q-total').textContent = questions.length;
+  document.getElementById('q-score').textContent = score;
+  const optsEl = document.getElementById('q-opts');
+  optsEl.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  q.opts.forEach((o,i) => {
+    const d = document.createElement('div');
+    d.className = 'quiz-opt';
+    d.innerHTML = `<div class="q-circle">${letters[i]}</div>${o}`;
+    d.onclick = () => answer(d, i===q.ans, q.fb);
+    optsEl.appendChild(d);
+  });
+  document.getElementById('q-feedback').style.display = 'none';
+  document.getElementById('next-btn').style.display = 'none';
+}
+
+function answer(el, correct, fb) {
+  document.querySelectorAll('.quiz-opt').forEach(o => o.onclick = null);
+  el.classList.add(correct ? 'correct' : 'wrong');
+  if(!correct) document.querySelectorAll('.quiz-opt')[questions[qIdx].ans].classList.add('correct');
+  if(correct) score++;
+  document.getElementById('q-score').textContent = score;
+  const fbEl = document.getElementById('q-feedback');
+  fbEl.textContent = correct ? fb : 'Not quite — review the lesson and try again. The correct answer is highlighted.';
+  fbEl.style.display = 'block';
+  document.getElementById('next-btn').style.display = 'inline-block';
+  const fill = document.getElementById('overall-fill');
+  const cur = parseInt(fill.style.width) || 48;
+  if(correct) fill.style.width = Math.min(cur+4, 100)+'%';
+}
+
+function nextQ() {
+  qIdx = (qIdx+1) % questions.length;
+  loadQ();
+}
+
+goLesson('passive');
+loadQ();
+</script>
+</body>
+</html>
