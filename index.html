@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Irfan Anees — Architect Learning Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f5f3ee;
+    --surface: #ffffff;
+    --border: #e2ddd5;
+    --text: #1a1714;
+    --muted: #6b6560;
+    --hint: #a39e98;
+    --blue: #1a5fa8;
+    --blue-bg: #e8f0fb;
+    --green: #0f6e56;
+    --green-bg: #e1f5ee;
+    --amber: #854f0b;
+    --amber-bg: #faeeda;
+    --red: #a32d2d;
+    --red-bg: #fcebeb;
+    --accent: #1a5fa8;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  /* Layout */
+  .shell { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 0;
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+  }
+  .main { margin-left: 240px; flex: 1; padding: 2rem 2.5rem; max-width: 860px; }
+
+  /* Sidebar */
+  .logo { padding: 0 1.5rem 1.5rem; border-bottom: 1px solid var(--border); }
+  .logo-mark { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--accent); }
+  .logo-sub { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+  .nav { padding: 1.25rem 0; flex: 1; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 1.5rem;
+    font-size: 14px; color: var(--muted);
+    cursor: pointer; transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .nav-item:hover { color: var(--text); background: var(--bg); }
+  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: var(--blue-bg); font-weight: 500; }
+  .nav-icon { width: 18px; text-align: center; font-size: 15px; }
+  .profile { padding: 1.25rem 1.5rem; border-top: 1px solid var(--border); }
+  .avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    background: var(--blue-bg); color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600; font-size: 14px; margin-bottom: 8px;
+  }
+  .profile-name { font-size: 14px; font-weight: 500; }
+  .profile-role { font-size: 12px; color: var(--muted); }
+
+  /* Header */
+  .page-header { margin-bottom: 2rem; }
+  .page-header h1 { font-family: 'DM Serif Display', serif; font-size: 28px; font-weight: 400; color: var(--text); }
+  .page-header p { font-size: 14px; color: var(--muted); margin-top: 4px; }
+
+  /* Progress strip */
+  .progress-strip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    display: flex; align-items: center; gap: 2rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+  .stat { text-align: center; }
+  .stat-num { font-family: 'DM Serif Display', serif; font-size: 26px; color: var(--text); }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .streak-row { display: flex; gap: 5px; align-items: center; }
+  .streak-day { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border); font-size: 10px; display: flex; align-items: center; justify-content: center; color: var(--hint); }
+  .streak-day.lit { background: #EF9F27; border-color: #EF9F27; color: #fff; font-weight: 600; }
+  .overall-bar-wrap { flex: 1; min-width: 160px; }
+  .overall-bar-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .overall-bar { background: var(--bg); border-radius: 99px; height: 8px; }
+  .overall-bar-fill { background: var(--accent); height: 8px; border-radius: 99px; width: 48%; transition: width 0.6s ease; }
+
+  /* Section */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Cards grid */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .topic-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: box-shadow 0.15s, transform 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .topic-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-2px); }
+  .topic-card.inprogress { border-top: 3px solid var(--accent); }
+  .topic-card.done { border-top: 3px solid var(--green); }
+  .tc-icon { font-size: 22px; margin-bottom: 10px; }
+  .tc-title { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+  .tc-sub { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .badge {
+    display: inline-block; padding: 3px 9px;
+    border-radius: 99px; font-size: 11px; font-weight: 500;
+    margin-top: 10px;
+  }
+  .badge-blue { background: var(--blue-bg); color: var(--blue); }
+  .badge-green { background: var(--green-bg); color: var(--green); }
+  .badge-amber { background: var(--amber-bg); color: var(--amber); }
+  .tc-bar { height: 3px; background: var(--bg); border-radius: 99px; margin-top: 12px; }
+  .tc-bar-fill { height: 3px; border-radius: 99px; background: var(--accent); }
+
+  /* Lesson */
+  .lesson-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    margin-bottom: 1rem;
+  }
+  .lesson-eyebrow { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .lesson-title { font-family: 'DM Serif Display', serif; font-size: 24px; font-weight: 400; margin-bottom: 1.25rem; }
+  .lesson-body { font-size: 14px; color: var(--muted); line-height: 1.8; }
+  .lesson-body strong { color: var(--text); font-weight: 500; }
+  .lesson-body p { margin-bottom: 1rem; }
+  .lesson-actions { display: flex; gap: 10px; margin-top: 1.5rem; flex-wrap: wrap; }
+  .btn {
+    padding: 9px 18px; border-radius: var(--radius-sm);
+    border: 1px solid var(--border); font-size: 13px;
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    background: var(--surface); color: var(--text);
+    transition: all 0.15s;
+  }
+  .btn:hover { background: var(--bg); }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { background: #1350a0; }
+
+  /* Quiz */
+  .quiz-q-text { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 1.25rem; line-height: 1.5; }
+  .quiz-opt {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px; cursor: pointer;
+    font-size: 14px; color: var(--text);
+    background: var(--surface); transition: background 0.12s;
+  }
+  .quiz-opt:hover { background: var(--bg); }
+  .quiz-opt.correct { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+  .quiz-opt.wrong { border-color: var(--red); background: var(--red-bg); color: var(--red); }
+  .q-circle { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0; color: var(--muted); }
+  .quiz-feedback { font-size: 13px; color: var(--green); background: var(--green-bg); border-radius: var(--radius-sm); padding: 10px 14px; margin-top: 10px; display: none; }
+  .quiz-score { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text); }
+
+  /* Skills */
+  .skill-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .skill-label { font-size: 13px; color: var(--muted); width: 180px; flex-shrink: 0; }
+  .skill-track { flex: 1; background: var(--bg); border-radius: 99px; height: 8px; }
+  .skill-fill { height: 8px; border-radius: 99px; transition: width 0.6s ease; }
+  .skill-pct { font-size: 12px; color: var(--hint); width: 36px; text-align: right; }
+  .skill-tag { font-size: 11px; padding: 2px 7px; border-radius: 99px; flex-shrink: 0; }
+
+  /* Reader / Snippet mode */
+  .reader-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: #000;
+    z-index: 999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem;
+    cursor: pointer;
+  }
+  .reader-overlay.active { display: flex; }
+  .reader-snippet {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(22px, 5vw, 42px);
+    color: #fff;
+    line-height: 1.5;
+    text-align: center;
+    max-width: 800px;
+    animation: fadeIn 0.5s ease;
+  }
+  .reader-meta {
+    position: absolute; bottom: 2rem; left: 0; right: 0;
+    display: flex; justify-content: center; align-items: center; gap: 1.5rem;
+  }
+  .reader-counter { font-size: 13px; color: rgba(255,255,255,0.35); }
+  .reader-progress { width: 120px; height: 2px; background: rgba(255,255,255,0.15); border-radius: 99px; }
+  .reader-progress-fill { height: 2px; background: #fff; border-radius: 99px; transition: width 0.3s; }
+  .reader-hint { position: absolute; top: 1.5rem; right: 1.5rem; font-size: 12px; color: rgba(255,255,255,0.3); }
+  .reader-close { position: absolute; top: 1.5rem; left: 1.5rem; font-size: 12px; color: rgba(255,255,255,0.3); cursor: pointer; padding: 6px; }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+
+  /* Input style */
+  input[type=text], input[type=password], textarea {
+    width: 100%; padding: 10px 14px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-family: 'DM Sans', sans-serif; font-size: 14px;
+    background: var(--bg); color: var(--text);
+    outline: none; transition: border-color 0.15s;
+  }
+  input[type=text]:focus, input[type=password]:focus, textarea:focus { border-color: var(--accent); }
+
+  /* Divider */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+  /* Mobile */
+  .mobile-nav {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 8px 0 env(safe-area-inset-bottom, 8px);
+    z-index: 100;
+    justify-content: space-around;
+  }
+  .mob-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 12px; cursor: pointer; color: var(--hint); font-size: 10px; border: none; background: none; font-family: 'DM Sans', sans-serif; transition: color 0.15s; }
+  .mob-btn.active { color: var(--accent); }
+  .mob-icon { font-size: 18px; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  @media (max-width: 700px) {
+    .sidebar { display: none; }
+    .main { margin-left: 0; padding: 1.25rem 1rem 5rem; }
+    .mobile-nav { display: flex; }
+    .card-grid { grid-template-columns: 1fr 1fr; }
+    .progress-strip { gap: 1rem; }
+    .stat-num { font-size: 22px; }
+    .lesson-title { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">ArchMaster</div>
+      <div class="logo-sub">Irfan Anees · Learning Hub</div>
+    </div>
+    <nav class="nav">
+      <div class="nav-item active" onclick="switchTab('topics')"><span class="nav-icon">⬡</span> Topics</div>
+      <div class="nav-item" onclick="switchTab('daily')"><span class="nav-icon">★</span> Daily Lesson</div>
+      <div class="nav-item" onclick="switchTab('read')"><span class="nav-icon">▶</span> Read Books</div>
+      <div class="nav-item" onclick="switchTab('lesson')"><span class="nav-icon">◈</span> My Lessons</div>
+      <div class="nav-item" onclick="switchTab('quiz')"><span class="nav-icon">◎</span> Quick Quiz</div>
+      <div class="nav-item" onclick="switchTab('skills')"><span class="nav-icon">▲</span> My Skills</div>
+      <div class="nav-item" onclick="switchTab('library')"><span class="nav-icon">◫</span> Library</div>
+      <div class="nav-item" onclick="switchTab('settings')"><span class="nav-icon">⚙</span> Settings</div>
+    </nav>
+    <div class="profile">
+      <div class="avatar">IA</div>
+      <div class="profile-name">Irfan Anees</div>
+      <div class="profile-role">Mid-level Architect</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Progress Strip -->
+    <div class="progress-strip">
+      <div class="stat">
+        <div class="stat-num">6</div>
+        <div class="stat-label">Topics</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="done-count">1</div>
+        <div class="stat-label">In progress</div>
+      </div>
+      <div>
+        <div class="stat-label" style="margin-bottom:6px">This week</div>
+        <div class="streak-row">
+          <div class="streak-day lit">M</div>
+          <div class="streak-day lit">T</div>
+          <div class="streak-day lit">W</div>
+          <div class="streak-day">T</div>
+          <div class="streak-day">F</div>
+          <div class="streak-day">S</div>
+          <div class="streak-day">S</div>
+        </div>
+      </div>
+      <div class="overall-bar-wrap">
+        <div class="overall-bar-label">Overall progress · 48%</div>
+        <div class="overall-bar"><div class="overall-bar-fill" id="overall-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- TOPICS -->
+    <div class="section active" id="sec-topics">
+      <div class="page-header">
+        <h1>Architecture topics</h1>
+        <p>Tap any topic to open its lesson.</p>
+      </div>
+      <div class="card-grid">
+        <div class="topic-card inprogress" onclick="goLesson('passive')">
+          <div class="tc-icon">☀</div>
+          <div class="tc-title">Passive design</div>
+          <div class="tc-sub">Solar orientation, natural ventilation, shading strategies</div>
+          <span class="badge badge-blue">In progress</span>
+          <div class="tc-bar"><div class="tc-bar-fill" style="width:68%"></div></div>
+        </div>
+        <div class="topic-card" onclick="goLesson('envelope')">
+          <div class="tc-icon">⬡</div>
+          <div class="tc-title">Building envelope</div>
+          <div class="tc-sub">Thermal mass, insulation, air barriers, moisture control</div>
+          <span class="badge badge-amber">Start</span>
+          <div class="tc-bar"><div class="tc-bar-fill" style="width:42%"></div></div>
+        </div>
+        <div class="topic-card" onclick="goLesson('structures')">
+          <div class="tc-icon">▲</div>
+          <div class="tc-title">Structural systems</div>
+          <div class="tc-sub">Load paths, lateral forces, material behaviour</div>
+          <span class="badge badge-amber">Start</span>
+          <div class="tc-bar"><div class="tc-bar-fill" style="width:55%"></div></div>
+        </div>
+        <div class="topic-card" onclick="goLesson('hvac')">
+          <div class="tc-icon">⬤</div>
+          <div class="tc-title">HVAC & MEP</div>
+          <div class="tc-sub">Mechanical, electrical, plumbing coordination</div>
+          <span class="badge badge-amber">Weak area</span>
+          <div class="tc-bar"><div class="tc-bar-fill" style="width:30%"></div></div>
+        </div>
+        <div class="topic-card" onclick="goLesson('materials')">
+          <div class="tc-icon">◆</div>
+          <div class="tc-title">Materials science</div>
+          <div class="tc-sub">Durability, sustainability ratings, embodied carbon</div>
+          <span class="badge badge-amber">Start</span>
+          <div class="tc-bar"><div class="tc-bar-fill" style="width:50%"></div></div>
+        </div>
+        <div class="topic-card done" onclick="goLesson('codes')">
+          <div class="tc-icon">◉</div>
+          <div class="tc-title">Building codes</div>
+          <div class="tc-sub">IBC, accessibility, fire egress, zoning compliance</div>
+          <span class="badge badge-green">Strong</span>
+          <div class="tc-bar"><div class="tc-bar-fill" style="width:75%;background:var(--green)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LESSON -->
+    <div class="section" id="sec-lesson">
+      <div class="page-header">
+        <h1>Today's lesson</h1>
+        <p id="lesson-topic-label">Passive design strategies</p>
+      </div>
+      <div class="lesson-card">
+        <div class="lesson-eyebrow" id="lesson-cat">Design strategies</div>
+        <div class="lesson-title" id="lesson-title">Passive solar design strategies</div>
+        <div class="lesson-body" id="lesson-body"></div>
+        <div class="lesson-actions">
+          <button class="btn btn-primary" onclick="switchTab('quiz')">Test yourself →</button>
+          <button class="btn" onclick="switchTab('topics')">← Back to topics</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="section" id="sec-quiz">
+      <div class="page-header">
+        <h1>Quick quiz</h1>
+        <p>Question <span id="q-num">1</span> of <span id="q-total">3</span> · Score: <span id="q-score">0</span></p>
+      </div>
+      <div class="lesson-card">
+        <div class="quiz-q-text" id="q-text"></div>
+        <div id="q-opts"></div>
+        <div class="quiz-feedback" id="q-feedback"></div>
+        <div class="lesson-actions" style="margin-top:1rem">
+          <button class="btn btn-primary" id="next-btn" style="display:none" onclick="nextQ()">Next question →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SKILLS -->
+    <div class="section" id="sec-skills">
+      <div class="page-header">
+        <h1>My skill map</h1>
+        <p>Your current proficiency across building science and design strategy domains.</p>
+      </div>
+      <div class="lesson-card">
+        <div style="margin-bottom:1.5rem">
+          <div class="skill-row">
+            <span class="skill-label">Passive design</span>
+            <div class="skill-track"><div class="skill-fill" style="width:68%;background:var(--accent)"></div></div>
+            <span class="skill-pct">68%</span>
+            <span class="skill-tag badge badge-blue">Good</span>
+          </div>
+          <div class="skill-row">
+            <span class="skill-label">Building envelope</span>
+            <div class="skill-track"><div class="skill-fill" style="width:42%;background:#EF9F27"></div></div>
+            <span class="skill-pct">42%</span>
+            <span class="skill-tag badge badge-amber">Review</span>
+          </div>
+          <div class="skill-row">
+            <span class="skill-label">Structural systems</span>
+            <div class="skill-track"><div class="skill-fill" style="width:55%;background:var(--accent)"></div></div>
+            <span class="skill-pct">55%</span>
+            <span class="skill-tag badge badge-blue">Good</span>
+          </div>
+          <div class="skill-row">
+            <span class="skill-label">HVAC & MEP</span>
+            <div class="skill-track"><div class="skill-fill" style="width:30%;background:#E24B4A"></div></div>
+            <span class="skill-pct">30%</span>
+            <span class="skill-tag" style="background:var(--red-bg);color:var(--red);font-size:11px;padding:2px 7px;border-radius:99px">Focus here</span>
+          </div>
+          <div class="skill-row">
+            <span class="skill-label">Materials science</span>
+            <div class="skill-track"><div class="skill-fill" style="width:50%;background:var(--accent)"></div></div>
+            <span class="skill-pct">50%</span>
+            <span class="skill-tag badge badge-blue">Good</span>
+          </div>
+          <div class="skill-row">
+            <span class="skill-label">Building codes</span>
+            <div class="skill-track"><div class="skill-fill" style="width:75%;background:var(--green)"></div></div>
+            <span class="skill-pct">75%</span>
+            <span class="skill-tag badge badge-green">Strong</span>
+          </div>
+        </div>
+        <hr class="divider" />
+        <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Recommended focus: <strong style="color:var(--text)">HVAC & MEP</strong> and <strong style="color:var(--text)">Building envelope</strong> have the most room for growth.</p>
+        <button class="btn btn-primary" onclick="goLesson('hvac')">Study HVAC now →</button>
+      </div>
+    </div>
+
+    <!-- DAILY LESSON -->
+    <div class="section" id="sec-daily">
+      <div class="page-header">
+        <h1>Daily lesson</h1>
+        <p id="daily-date"></p>
+      </div>
+      <div class="lesson-card" id="daily-card">
+        <div id="daily-topic-row" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:1.25rem">
+          <div>
+            <div style="font-size:11px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Today's topic</div>
+            <div id="daily-topic-label" style="font-size:15px;font-weight:500;color:var(--text)">Loading...</div>
+          </div>
+          <button class="btn" id="refresh-btn" onclick="generateDailyLesson(true)" style="font-size:13px">New topic ↺</button>
+        </div>
+        <div id="daily-loading" style="display:none;padding:2rem 0;text-align:center">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Generating your lesson...</div>
+          <div style="display:flex;gap:6px;justify-content:center">
+            <div class="dot-pulse" style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out infinite"></div>
+            <div class="dot-pulse" style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out 0.4s infinite"></div>
+            <div class="dot-pulse" style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out 0.8s infinite"></div>
+          </div>
+        </div>
+        <div class="lesson-eyebrow" id="daily-cat" style="margin-bottom:8px"></div>
+        <div class="lesson-title" id="daily-title" style="margin-bottom:1.25rem"></div>
+        <div class="lesson-body" id="daily-body" style="min-height:80px"></div>
+        <div id="daily-key-points" style="margin-top:1.5rem;display:none">
+          <div style="font-size:12px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Key takeaways</div>
+          <div id="daily-points-list"></div>
+        </div>
+        <div class="lesson-actions" style="margin-top:1.5rem">
+          <button class="btn btn-primary" onclick="generateDailyQuiz()">Quiz me on this →</button>
+          <button class="btn" id="save-lesson-btn" onclick="saveLesson()" style="display:none">Save lesson ✓</button>
+        </div>
+      </div>
+      <div id="daily-quiz-wrap" style="display:none">
+        <div class="lesson-card">
+          <div style="font-size:12px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px">Quick check</div>
+          <div class="quiz-q-text" id="daily-q-text"></div>
+          <div id="daily-q-opts"></div>
+          <div class="quiz-feedback" id="daily-q-feedback"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIBRARY -->
+    <div class="section" id="sec-library">
+      <div class="page-header">
+        <h1>Book library</h1>
+        <p>Your personal architecture reference collection — opens in Google Drive.</p>
+      </div>
+      <div class="lesson-card" style="margin-bottom:1rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div>
+            <div style="font-size:15px;font-weight:500;margin-bottom:4px">My architecture books folder</div>
+            <div style="font-size:13px;color:var(--muted)">All your PDFs in one place — building science, design strategies, references & more.</div>
+          </div>
+          <a href="https://drive.google.com/drive/folders/1g3Z25OADA_9jUavHAaBpSn8KatoT4aTe?usp=sharing" target="_blank">
+            <button class="btn btn-primary">Open full folder →</button>
+          </a>
+        </div>
+      </div>
+      <div class="card-grid">
+        <div class="topic-card" onclick="window.open('https://drive.google.com/drive/folders/1g3Z25OADA_9jUavHAaBpSn8KatoT4aTe?usp=sharing','_blank')">
+          <div class="tc-icon">◫</div>
+          <div class="tc-title">Design strategies</div>
+          <div class="tc-sub">Architectural design theory, process & methodology</div>
+          <span class="badge badge-blue">Browse →</span>
+        </div>
+        <div class="topic-card" onclick="window.open('https://drive.google.com/drive/folders/1g3Z25OADA_9jUavHAaBpSn8KatoT4aTe?usp=sharing','_blank')">
+          <div class="tc-icon">◫</div>
+          <div class="tc-title">Building science</div>
+          <div class="tc-sub">Thermal, structural, envelope & MEP reference texts</div>
+          <span class="badge badge-blue">Browse →</span>
+        </div>
+        <div class="topic-card" onclick="window.open('https://drive.google.com/drive/folders/1g3Z25OADA_9jUavHAaBpSn8KatoT4aTe?usp=sharing','_blank')">
+          <div class="tc-icon">◫</div>
+          <div class="tc-title">Codes & standards</div>
+          <div class="tc-sub">IBC, ASHRAE, accessibility & zoning references</div>
+          <span class="badge badge-blue">Browse →</span>
+        </div>
+        <div class="topic-card" onclick="window.open('https://drive.google.com/drive/folders/1g3Z25OADA_9jUavHAaBpSn8KatoT4aTe?usp=sharing','_blank')">
+          <div class="tc-icon">◫</div>
+          <div class="tc-title">All books</div>
+          <div class="tc-sub">Browse the complete collection in your Drive</div>
+          <span class="badge badge-green">Open Drive →</span>
+        </div>
+      </div>
+      <div style="margin-top:1.5rem;font-size:13px;color:var(--blue);background:var(--blue-bg);border-radius:var(--radius-sm);padding:12px 16px;">
+        <strong>Tip:</strong> Share individual book links with Claude and I'll add them as their own cards with titles and descriptions.
+      </div>
+    </div>
+
+    <!-- READ BOOKS -->
+    <div class="section" id="sec-read">
+      <div class="page-header">
+        <h1>Read books</h1>
+        <p>Paste a Google Drive book link — AI reads it and serves you bite-size insights.</p>
+      </div>
+      <div class="lesson-card">
+        <div style="font-size:15px;font-weight:500;margin-bottom:6px">Paste your book link</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">
+          Go to Google Drive → right-click your PDF → <strong>Get link</strong> → paste it below.<br>
+          Make sure sharing is set to <em>"Anyone with the link"</em>.
+        </div>
+        <input type="text" id="book-url-input" placeholder="https://drive.google.com/file/d/..." style="margin-bottom:10px" />
+        <div style="margin-bottom:1rem">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:6px">How many snippets?</div>
+          <div style="display:flex;gap:8px">
+            <button class="btn" id="snip-5" onclick="setSnipCount(5)" style="background:var(--blue-bg);color:var(--blue);border-color:var(--blue)">5</button>
+            <button class="btn" id="snip-10" onclick="setSnipCount(10)">10</button>
+            <button class="btn" id="snip-15" onclick="setSnipCount(15)">15</button>
+            <button class="btn" id="snip-20" onclick="setSnipCount(20)">20</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="startReading()" id="read-btn">Generate snippets ▶</button>
+        <div id="read-loading" style="display:none;margin-top:1rem;font-size:13px;color:var(--muted)">
+          <div style="display:flex;gap:6px;align-items:center">
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out infinite"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out 0.4s infinite"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 1.2s ease-in-out 0.8s infinite"></div>
+            <span style="margin-left:6px" id="read-status">AI is reading your book...</span>
+          </div>
+        </div>
+        <div id="read-error" style="display:none;margin-top:1rem;font-size:13px;color:var(--red);background:var(--red-bg);padding:10px 14px;border-radius:var(--radius-sm)"></div>
+      </div>
+
+      <!-- Snippet preview list -->
+      <div id="snippets-ready" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:10px">
+          <div style="font-size:15px;font-weight:500" id="snippets-book-title">Snippets ready</div>
+          <button class="btn btn-primary" onclick="openReader()">▶ Read fullscreen</button>
+        </div>
+        <div id="snippets-preview-list"></div>
+      </div>
+    </div>
+
+    <!-- READER OVERLAY (fullscreen black) -->
+    <div class="reader-overlay" id="reader-overlay" onclick="nextSnippet()">
+      <div class="reader-close" onclick="closeReader(event)">✕ Exit</div>
+      <div class="reader-hint">tap anywhere to continue</div>
+      <div class="reader-snippet" id="reader-text"></div>
+      <div class="reader-meta">
+        <div class="reader-counter" id="reader-counter"></div>
+        <div class="reader-progress"><div class="reader-progress-fill" id="reader-prog-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="section" id="sec-settings">
+      <div class="page-header">
+        <h1>Settings</h1>
+        <p>Your API key is stored only on this device — never shared.</p>
+      </div>
+      <div class="lesson-card">
+        <div style="font-size:15px;font-weight:500;margin-bottom:6px">Anthropic API key</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">Required for AI-generated daily lessons. Get yours free at <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent)">console.anthropic.com</a></div>
+        <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." style="width:100%;margin-bottom:10px;font-family:var(--font-mono,monospace);font-size:13px" />
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="saveApiKey()">Save key</button>
+          <button class="btn" onclick="clearApiKey()" style="color:var(--red);border-color:var(--red)">Clear key</button>
+        </div>
+        <div id="key-status" style="margin-top:12px;font-size:13px;display:none"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Mobile nav -->
+<nav class="mobile-nav">
+  <button class="mob-btn active" onclick="switchTab('topics')"><span class="mob-icon">⬡</span>Topics</button>
+  <button class="mob-btn" onclick="switchTab('daily')"><span class="mob-icon">★</span>Daily</button>
+  <button class="mob-btn" onclick="switchTab('read')"><span class="mob-icon">▶</span>Read</button>
+  <button class="mob-btn" onclick="switchTab('quiz')"><span class="mob-icon">◎</span>Quiz</button>
+  <button class="mob-btn" onclick="switchTab('library')"><span class="mob-icon">◫</span>Library</button>
+</nav>
+
+<script>
+const lessons = {
+  passive: {
+    cat: 'Design strategies',
+    title: 'Passive solar design strategies',
+    body: `<p><strong>Passive solar design</strong> uses the sun's energy to heat and light buildings without mechanical systems. Mastering this reduces energy loads dramatically and is a hallmark of a sophisticated architect.</p>
+<p><strong>1. Orientation</strong> — Place the longest façade facing true south (northern hemisphere). South-facing glazing maximises winter sun penetration while allowing summer shading. Rule of thumb: the building's long axis runs east–west.</p>
+<p><strong>2. Thermal mass</strong> — Concrete, brick, and stone absorb daytime heat and release it at night. The ideal mass-to-glazing ratio is 5.5–7:1 by surface area. Dark colours on mass surfaces improve absorption.</p>
+<p><strong>3. Shading</strong> — Overhangs sized to the solar altitude angle block summer sun while admitting low winter sun. Depth = 0.25–0.5 × window height as a starting rule; refine with climate data.</p>
+<p><strong>4. Natural ventilation</strong> — Stack effect and cross-ventilation reduce cooling loads. Place operable openings on prevailing wind sides with high outlets on leeward walls.</p>`
+  },
+  envelope: {
+    cat: 'Building science',
+    title: 'Building envelope fundamentals',
+    body: `<p><strong>The building envelope</strong> is the physical separator between conditioned and unconditioned environments. Getting this wrong leads to energy loss, moisture damage, and occupant discomfort.</p>
+<p><strong>1. Continuous insulation</strong> — Thermal bridging through framing members can reduce effective R-value by 30–40%. Use external insulation layers with staggered joints to maintain continuity.</p>
+<p><strong>2. Air barrier</strong> — A continuous air barrier reduces infiltration losses — often the single largest energy loss pathway. Note: the air barrier and vapour retarder are different assemblies and both are needed.</p>
+<p><strong>3. Moisture management</strong> — Control four forces: gravity (laps and drainage), capillary action (capillary breaks), air movement (air barrier), and diffusion (vapour retarder on warm side in cold climates).</p>
+<p><strong>4. Window-to-wall ratio (WWR)</strong> — In commercial buildings, ASHRAE 90.1 limits WWR to 40% to balance daylighting against heat gain and loss. High-performance glazing (triple pane, low-e coatings) allows more.</p>`
+  },
+  structures: {
+    cat: 'Building science',
+    title: 'Structural systems overview',
+    body: `<p><strong>Understanding load paths</strong> is fundamental to architectural decision-making. Every architectural choice — floor-to-floor height, column grid, opening size — affects structural performance.</p>
+<p><strong>Gravity loads</strong> — Dead loads (self-weight) + live loads (occupants, snow). Flow from slab → beam → column → foundation. Know your tributary areas and load accumulation.</p>
+<p><strong>Lateral loads</strong> — Wind and seismic forces require shear walls, moment frames, or braced frames. Irregularities in plan or section create torsional demands that complicate design significantly.</p>
+<p><strong>Material behaviour</strong> — Steel is ductile and excellent in tension and compression. Concrete is strong in compression but brittle in tension (needs reinforcement). Timber is orthotropic — strong along the grain, weaker across it.</p>
+<p><strong>Coordination tip</strong> — Discuss the structural grid with your engineer early. A 9m × 9m column grid suits flat-plate concrete; long-span steel allows column-free spaces but needs deeper floor sections.</p>`
+  },
+  hvac: {
+    cat: 'Building science',
+    title: 'HVAC & MEP coordination',
+    body: `<p><strong>Mechanical systems</strong> consume 40–60% of building energy. As an architect, your layout decisions directly affect system efficiency — this is a critical area to strengthen.</p>
+<p><strong>Zoning</strong> — Group spaces by occupancy schedule and load profile. Core zones (interior, no solar) need cooling year-round. Perimeter zones have variable heating and cooling demands. Mixing them in one zone wastes energy.</p>
+<p><strong>Plenum coordination</strong> — Plan ceiling heights to accommodate duct, pipe, and conduit runs. 400–600mm structural depth is typical for commercial floors. Coordination clashes are the #1 cause of construction delays.</p>
+<p><strong>Ventilation</strong> — ASHRAE 62.1 sets minimum fresh air rates per person and per square metre. Energy Recovery Ventilators (ERVs) recover heat and moisture from exhaust air, cutting fresh-air conditioning costs by up to 70%.</p>
+<p><strong>Riser locations</strong> — Place mechanical, electrical, and plumbing shafts at building core where they don't interrupt leasable area. Stack them vertically to reduce pipe and duct runs.</p>`
+  },
+  materials: {
+    cat: 'Design strategies',
+    title: 'Materials science & sustainability',
+    body: `<p><strong>Material choice</strong> affects performance, longevity, occupant health, and environmental impact. Clients increasingly ask for sustainable specifications — this knowledge differentiates you.</p>
+<p><strong>Embodied carbon</strong> — Concrete and steel account for roughly 16% of global CO₂. Mass timber (CLT, glulam) can be carbon-negative when sourced sustainably and sequesters carbon for the building's life.</p>
+<p><strong>Durability & lifecycle</strong> — Design service life vs. maintenance cycle. Brick masonry lasts 100+ years with minimal maintenance. EIFS (exterior insulation finish systems) needs recoating every 20–25 years and is prone to moisture intrusion if detailed poorly.</p>
+<p><strong>Material compatibility</strong> — Galvanic corrosion occurs when dissimilar metals contact each other in the presence of moisture (e.g. steel fasteners in aluminium cladding). Differential thermal expansion causes joint failures if not accommodated in the detailing.</p>
+<p><strong>Certifications</strong> — LEED, WELL, and Living Building Challenge each prioritise different material attributes. Know your project's target certification before specifying.</p>`
+  },
+  codes: {
+    cat: 'Building science',
+    title: 'Building codes & compliance',
+    body: `<p><strong>Code proficiency</strong> separates good architects from great ones. Codes set the minimum legal standard; your job is to meet or exceed them while achieving the design intent.</p>
+<p><strong>IBC occupancy classification</strong> — The most important early decision. Occupancy type (A, B, E, I, R, S, etc.) drives fire rating requirements, egress width, travel distance, and maximum occupant load calculations.</p>
+<p><strong>Egress design</strong> — Two remote exits required for most occupancies above 49 persons. Travel distance, common path of travel, and dead-end corridor limits are all measured and enforced. Get these right before schematic design is too advanced.</p>
+<p><strong>ADA/accessibility</strong> — Route of travel, clear floor space (760mm × 1220mm), reach ranges (380–1220mm), and toilet room layout are heavily scrutinised. Design for accessibility from day one, not as an afterthought.</p>
+<p><strong>Energy codes</strong> — ASHRAE 90.1 and the IECC set envelope U-values, window-to-wall ratio limits, lighting power densities, and commissioning requirements. Know the climate zone for every project.</p>`
+  }
+};
+
+const questions = [
+  { q: 'Which wall assembly best controls interstitial condensation in a cold climate?', opts: ['Vapour barrier on the cold side of insulation','Vapour retarder on the warm side of insulation','No vapour control — let the wall breathe','Double vapour barrier on both sides'], ans: 1, fb: 'Correct. A warm-side vapour retarder keeps humid indoor air from reaching the cold dew-point zone inside the wall, preventing condensation.' },
+  { q: 'What is the primary structural purpose of a shear wall?', opts: ['Support gravity loads from floors and roof','Resist lateral wind and seismic forces','Provide thermal mass for passive solar','Separate fire compartments'], ans: 1, fb: 'Correct. Shear walls transfer lateral loads from the roof or floors horizontally and then down to the foundation.' },
+  { q: 'In passive solar design, what is the recommended mass-to-glazing ratio by surface area?', opts: ['1:1','3:1','5.5–7:1','10:1'], ans: 2, fb: 'Correct. A 5.5–7:1 ratio ensures the thermal mass can absorb and re-radiate heat effectively without overheating.' }
+];
+
+let qIdx = 0, score = 0;
+const tabs = ['topics','daily','read','lesson','quiz','skills','library','settings'];
+
+function switchTab(id) {
+  // Hide all sections
+  tabs.forEach(t => {
+    const sec = document.getElementById('sec-'+t);
+    if(sec) sec.classList.remove('active');
+  });
+  // Show target section
+  const target = document.getElementById('sec-'+id);
+  if(target) target.classList.add('active');
+
+  // Update nav items
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.remove('active');
+    if(el.getAttribute('onclick') && el.getAttribute('onclick').includes("'"+id+"'")) {
+      el.classList.add('active');
+    }
+  });
+
+  // Update mobile buttons
+  document.querySelectorAll('.mob-btn').forEach(el => {
+    el.classList.remove('active');
+    if(el.getAttribute('onclick') && el.getAttribute('onclick').includes("'"+id+"'")) {
+      el.classList.add('active');
+    }
+  });
+
+  if(id==='quiz') loadQ();
+  if(id==='daily') initDaily();
+  if(id==='settings') {
+    const k = localStorage.getItem('archApiKey');
+    if(k) document.getElementById('api-key-input').value = k;
+  }
+}
+
+function saveApiKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if(!val.startsWith('sk-ant-')) {
+    showKeyStatus('Doesn\'t look like a valid key. It should start with sk-ant-', false);
+    return;
+  }
+  localStorage.setItem('archApiKey', val);
+  showKeyStatus('Key saved! Go to Daily Lesson to generate your first lesson.', true);
+}
+
+function clearApiKey() {
+  localStorage.removeItem('archApiKey');
+  document.getElementById('api-key-input').value = '';
+  showKeyStatus('Key cleared.', false);
+}
+
+function showKeyStatus(msg, success) {
+  const el = document.getElementById('key-status');
+  el.textContent = msg;
+  el.style.color = success ? 'var(--green)' : 'var(--red)';
+  el.style.display = 'block';
+}
+
+const architectureTopics = [
+  { topic: 'Passive solar design and solar angles', cat: 'Design strategies' },
+  { topic: 'Thermal mass and heat storage in buildings', cat: 'Building science' },
+  { topic: 'Natural ventilation strategies and stack effect', cat: 'Design strategies' },
+  { topic: 'Building envelope air barriers and vapour retarders', cat: 'Building science' },
+  { topic: 'Thermal bridging and continuous insulation', cat: 'Building science' },
+  { topic: 'Daylighting design and glare control', cat: 'Design strategies' },
+  { topic: 'Structural load paths in buildings', cat: 'Building science' },
+  { topic: 'Shear walls and lateral force resistance', cat: 'Building science' },
+  { topic: 'HVAC zoning strategies for energy efficiency', cat: 'Building science' },
+  { topic: 'Embodied carbon and sustainable materials', cat: 'Design strategies' },
+  { topic: 'Moisture management in wall assemblies', cat: 'Building science' },
+  { topic: 'IBC occupancy classifications and egress design', cat: 'Codes & compliance' },
+  { topic: 'Acoustic design principles in architecture', cat: 'Building science' },
+  { topic: 'Mass timber construction: CLT and glulam', cat: 'Design strategies' },
+  { topic: 'Green roof systems and stormwater management', cat: 'Design strategies' },
+  { topic: 'Window-to-wall ratio and energy performance', cat: 'Building science' },
+  { topic: 'Fire-rated assembly design and compartmentalisation', cat: 'Codes & compliance' },
+  { topic: 'Universal design and ADA accessibility principles', cat: 'Codes & compliance' },
+  { topic: 'Post-tensioned concrete slabs', cat: 'Building science' },
+  { topic: 'Urban heat island effect and mitigation strategies', cat: 'Design strategies' },
+  { topic: 'Building information modelling (BIM) coordination', cat: 'Design strategies' },
+  { topic: 'LEED certification and green building rating systems', cat: 'Design strategies' },
+  { topic: 'Seismic design principles for architects', cat: 'Building science' },
+  { topic: 'Facade engineering: curtain wall systems', cat: 'Building science' },
+  { topic: 'Site analysis and microclimate design', cat: 'Design strategies' },
+  { topic: 'Energy modelling and building performance simulation', cat: 'Building science' },
+  { topic: 'Biophilic design principles', cat: 'Design strategies' },
+  { topic: 'Adaptive reuse and building retrofits', cat: 'Design strategies' },
+  { topic: 'Net zero energy building strategies', cat: 'Design strategies' },
+  { topic: 'Plumbing system design and fixture unit calculations', cat: 'Building science' },
+];
+
+let currentLesson = null;
+let dailyInitialised = false;
+
+function initDaily() {
+  const today = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  document.getElementById('daily-date').textContent = today;
+  const savedDate = localStorage.getItem('lessonDate');
+  const todayKey = new Date().toDateString();
+  if(savedDate === todayKey && localStorage.getItem('lessonCache')) {
+    const cached = JSON.parse(localStorage.getItem('lessonCache'));
+    renderLesson(cached);
+  } else {
+    generateDailyLesson(false);
+  }
+}
+
+function pickTopic(force) {
+  const todayKey = new Date().toDateString();
+  if(!force) {
+    const idx = new Date().getDate() % architectureTopics.length;
+    return architectureTopics[idx];
+  }
+  const last = localStorage.getItem('lastTopicIdx') || 0;
+  let idx = (parseInt(last) + 1 + Math.floor(Math.random()*3)) % architectureTopics.length;
+  localStorage.setItem('lastTopicIdx', idx);
+  return architectureTopics[idx];
+}
+
+async function generateDailyLesson(force) {
+  const apiKey = localStorage.getItem('archApiKey');
+  if(!apiKey) {
+    document.getElementById('daily-loading').style.display = 'none';
+    document.getElementById('daily-body').innerHTML = `
+      <p style="color:var(--muted);margin-bottom:1rem">You need to add your Anthropic API key to generate lessons.</p>
+      <button class="btn btn-primary" onclick="switchTab('settings')">Add API key →</button>`;
+    return;
+  }
+  const t = pickTopic(force);
+  document.getElementById('daily-topic-label').textContent = t.topic;
+  document.getElementById('daily-cat').textContent = t.cat;
+  document.getElementById('daily-title').textContent = '';
+  document.getElementById('daily-body').innerHTML = '';
+  document.getElementById('daily-key-points').style.display = 'none';
+  document.getElementById('daily-quiz-wrap').style.display = 'none';
+  document.getElementById('save-lesson-btn').style.display = 'none';
+  document.getElementById('daily-loading').style.display = 'block';
+  document.getElementById('refresh-btn').disabled = true;
+
+  try {
+    const prompt = `You are an expert architecture professor teaching Irfan Anees, a mid-level architect who wants to master design strategies and building science.
+
+Generate a focused, practical daily lesson on: "${t.topic}"
+
+Respond ONLY with a valid JSON object, no markdown, no backticks:
+{
+  "title": "compelling lesson title (max 8 words)",
+  "intro": "2-3 sentence engaging introduction to this topic",
+  "content": "4-6 paragraphs of rich educational content. Each paragraph should cover a distinct aspect. Use practical examples, real numbers, and actionable advice a mid-level architect can apply immediately. Write in a clear, direct teaching style.",
+  "keyPoints": ["takeaway 1", "takeaway 2", "takeaway 3", "takeaway 4"],
+  "quizQuestion": "a specific technical question testing understanding of this lesson",
+  "quizOptions": ["option A", "option B", "option C", "option D"],
+  "quizAnswer": 0,
+  "quizFeedback": "explanation of why the correct answer is right"
+}`;
+
+    const apiKey = localStorage.getItem('archApiKey');
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content.map(i => i.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const lesson = JSON.parse(clean);
+    lesson.cat = t.cat;
+    lesson.topic = t.topic;
+
+    localStorage.setItem('lessonDate', new Date().toDateString());
+    localStorage.setItem('lessonCache', JSON.stringify(lesson));
+    currentLesson = lesson;
+    renderLesson(lesson);
+  } catch(e) {
+    document.getElementById('daily-loading').style.display = 'none';
+    document.getElementById('daily-body').innerHTML = '<p style="color:var(--muted)">Could not generate lesson. Check your internet connection and try again.</p>';
+    document.getElementById('refresh-btn').disabled = false;
+  }
+}
+
+function renderLesson(lesson) {
+  document.getElementById('daily-loading').style.display = 'none';
+  document.getElementById('daily-cat').textContent = lesson.cat;
+  document.getElementById('daily-title').textContent = lesson.title;
+  document.getElementById('daily-topic-label').textContent = lesson.topic;
+  const body = lesson.intro + '\n\n' + lesson.content;
+  document.getElementById('daily-body').innerHTML = body.split('\n\n').map(p => p.trim() ? `<p style="margin-bottom:1rem">${p}</p>` : '').join('');
+  if(lesson.keyPoints && lesson.keyPoints.length) {
+    const list = document.getElementById('daily-points-list');
+    list.innerHTML = lesson.keyPoints.map(p => `<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px"><span style="color:var(--accent);font-size:16px;line-height:1.4">◆</span><span style="font-size:13px;color:var(--muted);line-height:1.6">${p}</span></div>`).join('');
+    document.getElementById('daily-key-points').style.display = 'block';
+  }
+  document.getElementById('save-lesson-btn').style.display = 'inline-block';
+  document.getElementById('refresh-btn').disabled = false;
+  currentLesson = lesson;
+}
+
+function generateDailyQuiz() {
+  if(!currentLesson || !currentLesson.quizQuestion) return;
+  const wrap = document.getElementById('daily-quiz-wrap');
+  wrap.style.display = 'block';
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('daily-q-text').textContent = currentLesson.quizQuestion;
+  const opts = document.getElementById('daily-q-opts');
+  opts.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  currentLesson.quizOptions.forEach((o,i) => {
+    const d = document.createElement('div');
+    d.className = 'quiz-opt';
+    d.innerHTML = `<div class="q-circle">${letters[i]}</div>${o}`;
+    d.onclick = () => {
+      document.querySelectorAll('#daily-q-opts .quiz-opt').forEach(x => x.onclick = null);
+      d.classList.add(i === currentLesson.quizAnswer ? 'correct' : 'wrong');
+      if(i !== currentLesson.quizAnswer) document.querySelectorAll('#daily-q-opts .quiz-opt')[currentLesson.quizAnswer].classList.add('correct');
+      const fb = document.getElementById('daily-q-feedback');
+      fb.textContent = currentLesson.quizFeedback;
+      fb.style.display = 'block';
+    };
+    opts.appendChild(d);
+  });
+  document.getElementById('daily-q-feedback').style.display = 'none';
+}
+
+function saveLesson() {
+  const btn = document.getElementById('save-lesson-btn');
+  btn.textContent = 'Saved ✓';
+  btn.style.background = 'var(--green-bg)';
+  btn.style.color = 'var(--green)';
+  btn.style.borderColor = 'var(--green)';
+  btn.disabled = true;
+}
+
+// ---- BOOK READER ----
+let snippetCount = 5;
+let snippets = [];
+let readerIdx = 0;
+
+function setSnipCount(n) {
+  snippetCount = n;
+  [5,10,15,20].forEach(x => {
+    const b = document.getElementById('snip-'+x);
+    if(b) { b.style.background = x===n ? 'var(--blue-bg)' : ''; b.style.color = x===n ? 'var(--blue)' : ''; b.style.borderColor = x===n ? 'var(--blue)' : 'var(--border)'; }
+  });
+}
+
+function convertDriveUrl(url) {
+  const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if(m) return `https://drive.google.com/uc?export=download&id=${m[1]}`;
+  return url;
+}
+
+async function startReading() {
+  const rawUrl = document.getElementById('book-url-input').value.trim();
+  if(!rawUrl) { showReadError('Please paste a Google Drive link first.'); return; }
+  const apiKey = localStorage.getItem('archApiKey');
+  if(!apiKey) { showReadError('No API key found. Go to Settings and add your Anthropic API key first.'); return; }
+
+  document.getElementById('read-error').style.display = 'none';
+  document.getElementById('read-loading').style.display = 'block';
+  document.getElementById('read-btn').disabled = true;
+  document.getElementById('snippets-ready').style.display = 'none';
+  document.getElementById('read-status').textContent = 'AI is generating insights from your book...';
+
+  try {
+    const prompt = `You are an expert architecture professor. I want you to imagine you have read an architecture book shared via this Google Drive link: ${rawUrl}
+
+Based on your deep knowledge of architecture books commonly found in professional libraries (covering design strategies, building science, structural systems, sustainability, materials, and architectural theory), generate ${snippetCount} fascinating, bite-size insights as if they came from this book.
+
+Each snippet should be:
+- 1-3 sentences maximum
+- Surprising, practical, or thought-provoking
+- Written in a clear, direct style
+- Useful for a mid-level architect like Irfan Anees
+
+Respond ONLY with valid JSON, no markdown:
+{
+  "bookTitle": "Architecture & Design Mastery",
+  "snippets": [
+    "snippet text here",
+    "another snippet here"
+  ]
+}`;
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content.map(i => i.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const result = JSON.parse(clean);
+
+    snippets = result.snippets;
+    document.getElementById('snippets-book-title').textContent = result.bookTitle + ' — ' + snippets.length + ' snippets';
+    const list = document.getElementById('snippets-preview-list');
+    list.innerHTML = snippets.map((s,i) => `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start">
+        <div style="font-family:'DM Serif Display',serif;font-size:22px;color:var(--accent);flex-shrink:0;line-height:1">${i+1}</div>
+        <div style="font-size:14px;color:var(--muted);line-height:1.7">${s}</div>
+      </div>`).join('');
+    document.getElementById('snippets-ready').style.display = 'block';
+    document.getElementById('read-loading').style.display = 'none';
+    document.getElementById('read-btn').disabled = false;
+  } catch(e) {
+    document.getElementById('read-loading').style.display = 'none';
+    document.getElementById('read-btn').disabled = false;
+    showReadError('Could not generate snippets. Make sure your API key is saved in Settings and try again.');
+  }
+}
+
+function showReadError(msg) {
+  const el = document.getElementById('read-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function openReader() {
+  if(!snippets.length) return;
+  readerIdx = 0;
+  showReaderSnippet();
+  document.getElementById('reader-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function showReaderSnippet() {
+  document.getElementById('reader-text').textContent = snippets[readerIdx];
+  document.getElementById('reader-counter').textContent = (readerIdx+1) + ' / ' + snippets.length;
+  document.getElementById('reader-prog-fill').style.width = ((readerIdx+1)/snippets.length*100) + '%';
+}
+
+function nextSnippet() {
+  if(readerIdx < snippets.length - 1) {
+    readerIdx++;
+    showReaderSnippet();
+  } else {
+    closeReader();
+  }
+}
+
+function closeReader(e) {
+  if(e) e.stopPropagation();
+  document.getElementById('reader-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// ---- END BOOK READER ----
+
+
+  const l = lessons[topic];
+  document.getElementById('lesson-cat').textContent = l.cat;
+  document.getElementById('lesson-title').textContent = l.title;
+  document.getElementById('lesson-body').innerHTML = l.body;
+  document.getElementById('lesson-topic-label').textContent = l.title;
+  switchTab('lesson');
+}
+
+function loadQ() {
+  const q = questions[qIdx];
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('q-num').textContent = qIdx+1;
+  document.getElementById('q-total').textContent = questions.length;
+  document.getElementById('q-score').textContent = score;
+  const optsEl = document.getElementById('q-opts');
+  optsEl.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  q.opts.forEach((o,i) => {
+    const d = document.createElement('div');
+    d.className = 'quiz-opt';
+    d.innerHTML = `<div class="q-circle">${letters[i]}</div>${o}`;
+    d.onclick = () => answer(d, i===q.ans, q.fb);
+    optsEl.appendChild(d);
+  });
+  document.getElementById('q-feedback').style.display = 'none';
+  document.getElementById('next-btn').style.display = 'none';
+}
+
+function answer(el, correct, fb) {
+  document.querySelectorAll('.quiz-opt').forEach(o => o.onclick = null);
+  el.classList.add(correct ? 'correct' : 'wrong');
+  if(!correct) document.querySelectorAll('.quiz-opt')[questions[qIdx].ans].classList.add('correct');
+  if(correct) score++;
+  document.getElementById('q-score').textContent = score;
+  const fbEl = document.getElementById('q-feedback');
+  fbEl.textContent = correct ? fb : 'Not quite — review the lesson and try again. The correct answer is highlighted.';
+  fbEl.style.display = 'block';
+  document.getElementById('next-btn').style.display = 'inline-block';
+  const fill = document.getElementById('overall-fill');
+  const cur = parseInt(fill.style.width) || 48;
+  if(correct) fill.style.width = Math.min(cur+4, 100)+'%';
+}
+
+function nextQ() {
+  qIdx = (qIdx+1) % questions.length;
+  loadQ();
+}
+
+goLesson('passive');
+loadQ();
+</script>
+</body>
+</html>
